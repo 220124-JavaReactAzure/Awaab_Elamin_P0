@@ -30,7 +30,7 @@ public class FirstMenu extends Menu{
 			AppState.shutdown();
 			break;
 		default:
-			System.out.println("What on earth are you trying to tell me to do?!?!");
+			System.out.println("Please Enter one of the available choice from 1 to 3");
 			break;
 		}
 		
