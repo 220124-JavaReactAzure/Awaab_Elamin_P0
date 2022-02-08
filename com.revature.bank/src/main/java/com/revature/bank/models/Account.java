@@ -35,7 +35,7 @@ public class Account implements Serializable {
 	}
 	@Override
 	public String toString() {
-		return "Account [accountId=" + accountId + ", customerId=" + customerId + ", balance=" + balance + "]";
+		return "accountId= " + accountId + ",balance= " + balance;
 	}
 	
 	

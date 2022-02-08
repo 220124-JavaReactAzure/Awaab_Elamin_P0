@@ -98,6 +98,9 @@ public class BankDAO implements IDAO<Customer> {
 		}
 		return rows;
 	}
+	public boolean createAccount(Account account) {
+		return createAccount(String.valueOf(account.getCustomerId())) == 1;
+	}
 
 	public Customer findCustomerByEmail(String email) {
 		String sql = "SELECT customer_id, customer_first_name, customer_last_name,customer_email,customer_username,customer_password\r\n"
@@ -231,12 +234,13 @@ public class BankDAO implements IDAO<Customer> {
 
 	}
 
-	public ArrayList<Transaction> getAllTransactions(Account account) {
+	public ArrayList<Transaction> getAllTransactions(String accountId) {
 		ArrayList<Transaction> transactions = new ArrayList<>();
 		String sql = "select transaction_id,account_id,transaction_date, transaction_value from transactions where account_id = ?";
 		try (Connection conn = ConnectionFactory.getInstance().connectPostgre()){
+			System.out.println(accountId);
 			PreparedStatement pstmt = conn.prepareStatement(sql);
-			pstmt.setInt(1, account.getAccountId());
+			pstmt.setInt(1,Integer.parseInt(accountId));
 			ResultSet rs = pstmt.executeQuery();
 			while (rs.next()) {
 				Transaction transaction = new Transaction();
@@ -251,5 +255,84 @@ public class BankDAO implements IDAO<Customer> {
 		}
 		return transactions;
 	}
+
+	public ArrayList<Account> getAllAccounts(Customer customer) {
+		ArrayList<Account> accounts = new ArrayList<Account>();
+		String sql = "select account_id, customer_id, balance from account where customer_id = ?";
+		try (Connection conn = ConnectionFactory.getInstance().connectPostgre()) {
+			PreparedStatement pstmt = conn.prepareStatement(sql);
+			pstmt.setInt(1, Integer.parseInt(customer.getCustomerId()));
+			ResultSet rs = pstmt.executeQuery();
+			while (rs.next()) {
+				Account account = new Account();
+				account.setAccountId(rs.getInt("account_id"));
+				account.setCustomerId(rs.getInt("customer_id"));
+				account.setBalance(rs.getDouble("balance"));
+				accounts.add(account);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		return accounts;
+	}
+
+	public double getBalance(Customer customer, String accountId) {
+		double balance = 0;
+		String sql = "select balance from account where customer_id = ? and account_id = ?";
+		try (Connection conn = ConnectionFactory.getInstance().connectPostgre()) {
+			PreparedStatement pstmt = conn.prepareStatement(sql);
+			pstmt.setInt(1, Integer.parseInt(customer.getCustomerId()));
+			pstmt.setInt(2, Integer.parseInt(accountId));
+			ResultSet rs = pstmt.executeQuery();
+			while (rs.next()) {
+				balance = rs.getDouble("balance");
+
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return balance;
+	}
+
+	public boolean setBalance(Customer customer, double balance, String accountId) {
+		int i = 0;
+		String syntax = "UPDATE account SET balance = ? WHERE " + "customer_id = ? and account_id = ?";
+		try (Connection conn = ConnectionFactory.getInstance().connectPostgre()) {
+			PreparedStatement pstmt = conn.prepareStatement(syntax);
+			pstmt.setDouble(1, balance);
+			pstmt.setInt(2, Integer.parseInt(customer.getCustomerId()));
+			pstmt.setInt(3, Integer.parseInt(accountId));
+			i = pstmt.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		return i != 0;
+	}
+
+	public Account getAccount(Customer customer, String accountId) {
+		Account account = null;
+		String sql = "select account_id, customer_id, balance from account where customer_id = ? and account_id = ?";
+		try (Connection conn = ConnectionFactory.getInstance().connectPostgre()) {
+			PreparedStatement pstmt = conn.prepareStatement(sql);
+			pstmt.setInt(1, Integer.parseInt(customer.getCustomerId()));
+			pstmt.setInt(2, Integer.parseInt(accountId));
+			ResultSet rs = pstmt.executeQuery();
+			while (rs.next()) {
+				account = new Account();
+				account.setAccountId(rs.getInt("account_id"));
+				account.setCustomerId(rs.getInt("customer_id"));
+				account.setBalance(rs.getDouble("balance"));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		return account;
+	}
+
+	
 
 }

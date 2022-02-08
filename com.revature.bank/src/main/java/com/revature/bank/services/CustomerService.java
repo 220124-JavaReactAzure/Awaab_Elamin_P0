@@ -127,17 +127,78 @@ public class CustomerService {
 		return result;
 	}
 
-	public ArrayList<Transaction> getAllTransaction(Customer sessionCustomer) {
+	public ArrayList<Transaction> getAllTransaction(Customer sessionCustomer, String accountId) {
 		ArrayList<Transaction> transactions = new ArrayList<Transaction>();
 		try {
-			Customer customer = bankdao.findCustomerByEmail(sessionCustomer.getEmail());
-			Account account = bankdao.getAccount(customer);
-			transactions = bankdao.getAllTransactions(account);
+			transactions = bankdao.getAllTransactions(accountId);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		
 		return transactions;
 		
+	}
+
+	public ArrayList<Account> getAllAccounts(Customer sessionCustomer) {
+		ArrayList<Account> accounts = new ArrayList<Account>();
+		try {
+			Customer customer = bankdao.findCustomerByEmail(sessionCustomer.getEmail());
+			accounts = bankdao.getAllAccounts(customer);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		
+		return accounts;
+	}
+
+	public String getBalance(Customer sessionCustomer2, String accountId) {
+		double balance = 0;
+		try {
+			Customer customer = bankdao.findCustomerByEmail(sessionCustomer.getEmail());
+			balance = bankdao.getBalance(customer, accountId);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return String.valueOf(balance);
+	}
+
+	public boolean deposit(double value, String accountId) {
+		boolean result = false;
+		try {
+			Customer customer = bankdao.findCustomerByEmail(sessionCustomer.getEmail());
+			double balanceBefore = bankdao.getBalance(customer, accountId);
+			if (value < 0 && balanceBefore + value < 0) {
+				System.out.println("your balance is " + balanceBefore);
+				System.out.println("can not withdraw more than current balance");
+				return false;
+			}
+			double balance = balanceBefore + value;
+			result = bankdao.setBalance(customer, balance, accountId);
+			Account account = bankdao.getAccount(customer, accountId);
+			Transaction transaction = new Transaction();
+			transaction.setAccountId(account.getAccountId());
+			transaction.setTransactionDate(LocalDate.now().toString());
+			transaction.setTransactionValue(value);
+			bankdao.setTransaction(transaction);
+			result = true;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return result;
+	}
+
+	public boolean createNewAccount(Customer sessionCustomer2) {
+		boolean result = false;
+		try {
+			Customer customer = bankdao.findCustomerByEmail(sessionCustomer.getEmail());
+			Account account = new Account();
+			account.setCustomerId(Integer.parseInt(customer.getCustomerId()) );
+			account.setBalance(0);
+			result = bankdao.createAccount(account);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return result;
 	}
 }
